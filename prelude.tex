@@ -237,7 +237,7 @@
 
 \newcommand{\ruleName}[1]{\textsc{\footnotesize #1}\xspace}
 
-\newcommand {\TIf}           {\ruleName{T-If}}
+\newcommand {\TIf}           {\ruleName{T-IfThenElse}}
 \newcommand {\TPred}         {\ruleName{T-Pred}}
 \newcommand {\TSucc}         {\ruleName{T-Succ}}
 \newcommand {\TZero}         {\ruleName{T-Zero}}
@@ -283,7 +283,7 @@
 \newcommand {\EIfT}          {\EIfTrue}                          % to be deleted
 \newcommand {\EIfFalse}      {\ruleName{E-IfFalse}}
 \newcommand {\EIfF}          {\EIfFalse}                         % to be deleted
-\newcommand {\EIf}           {\ruleName{E-If}}
+\newcommand {\EIf}           {\ruleName{E-IfThenElse}}
 \newcommand {\ESucc}         {\ruleName{E-Succ}}
 \newcommand {\ESuc}          {\ESucc}                            % to be deleted
 \newcommand {\EPred}         {\ruleName{E-Pred}}
@@ -377,6 +377,8 @@
 \bibpunct{[}{]}{;}{a}{}{,} % citations style
 
 \newcommand{\bel}{\lstinline}
+
+\def\!{\mskip-\thickmuskip} % negative space for referring to succ, etc. without an argument
 
 \newcommand{\rc}[2]{\ensuremath{\mathcal{R}_{#1}(#2)}} % reducibility canadidate
 
