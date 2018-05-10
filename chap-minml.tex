@@ -960,27 +960,27 @@ $\tmzero \Halts$ \hfill by definition of $\Halts$
 \begin{case}{$\D = \ianc{\above{\D'}{ N : \Nat}}{ (\tmpred N) : \Nat}{\TPred}$}
 $N \Halts$, i.e. $\exists V.$ s.t.$~\V'::V\Value$ ~~and~~ $\S'::N \MSteps V$ \hfill by I.H. $\D'$\\[1em]
 %
-\fbox{To Prove: ~~~$M\Halts$, i.e. $\exists W$.s.t.$W \Value$ ~~and~~ $\S::~(\tmpred N) \MSteps W$}\\[1em]
+\fbox{To Prove: ~~~$M\Halts$, i.e. $\exists W.$ s.t. $W \Value$ ~~and~~ $\S :: \tmpred N \MSteps W$}\\[1em]
 %
 \begin{subcase}{$\V' = \ianc{}{\tmzero \Value}{\VZero}$ \quad and \quad $V = \tmzero$}
 $\proofderiv{\S'}{N \MSteps \tmzero}$ \hfill restating assumption $\S'$\\
-$\proofderiv{\S_0}{(\tmpred N) \MSteps (\tmpred \tmzero)}$ \hfill by lemma mstep-pred \\
-$\proofderiv{\S_1}{(\tmpred \tmzero) \MSteps \tmzero}$ \hfill by $\MStep$ using $\EPredZ$\\
-$\proofderiv{\S}{(\tmpred N) \MSteps \tmzero}$ \hfill by $\MTr$ using $\S_0$ and $\S_1$\\
-$\exists W$.s.t.$W \Value$ ~~and~~ $\S::~(\tmpred N) \MSteps W$ \hfill by choosing
+$\proofderiv{\S_0}{\tmpred N \MSteps \tmpred \tmzero}$ \hfill by lemma mstep-pred \\
+$\proofderiv{\S_1}{\tmpred \tmzero \MSteps \tmzero}$ \hfill by $\MStep$ using $\EPredZ$\\
+$\proofderiv{\S}{\tmpred N \MSteps \tmzero}$ \hfill by $\MTr$ using $\S_0$ and $\S_1$\\
+$\exists W$.s.t.$W \Value$ ~~and~~ $\S::~\tmpred N \MSteps W$ \hfill by choosing
 $W = \tmzero$\\
-$(\tmpred N)\Halts$ \hfill by definition of $\Halts$\\[1em]
+$(\tmpred N)\Halts$ \hfill by definition of ${\!}\Halts$\\[1em]
 \end{subcase}
 %
 \noindent
 \begin{subcase}{$\V' = \ianc{\above{\W}{V'\Value}}{(\tmsucc V') \Value}{\VSucc}$ \quad and \quad $V = \tmsucc V'$}
-$\proofderiv{\S'}{N \MSteps (\tmsucc V')}$ \hfill restating assumption $\S'$\\
-$\proofderiv{\S_0}{(\tmpred N) \MSteps (\tmpred (\tmsucc V'))}$ \hfill by lemma mstep-pred \\
-$\proofderiv{\S_1}{(\tmpred (\tmsucc V')) \MSteps V'}$ \hfill by $\MStep$ using $\EPredSucc$ and $\W$\\
-$\proofderiv{\S}{(\tmpred N) \MSteps V'}$ \hfill by $\MTr$ using $\S_0$ and $\S_1$\\
-$\exists W$.s.t.$W \Value$ ~~and~ ~$\S::~(\tmpred N) \MSteps W$ \hfill by choosing
+$\proofderiv{\S'}{N \MSteps \tmsucc V'}$ \hfill restating assumption $\S'$\\
+$\proofderiv{\S_0}{\tmpred N \MSteps \tmpred (\tmsucc V')}$ \hfill by lemma mstep-pred \\
+$\proofderiv{\S_1}{\tmpred (\tmsucc V') \MSteps V'}$ \hfill by $\MStep$ using $\EPredSucc$ and $\W$\\
+$\proofderiv{\S}{\tmpred N \MSteps V'}$ \hfill by $\MTr$ using $\S_0$ and $\S_1$\\
+$\exists W$.s.t.$W \Value$ ~~and~ ~$\S::~\tmpred N \MSteps W$ \hfill by choosing
 $W = V'$\\
-$(\tmpred N)\Halts$ \hfill by definition of $\Halts$\\[1em]
+$\tmpred N\Halts$ \hfill by definition of ${\!}\Halts$\\[1em]
 \end{subcase}
 %
 \noindent
@@ -993,6 +993,36 @@ $~~~ \bot$ \hfill \\[1em]
 \noindent
 \begin{subcase}{$\V' = \ianc{}{\tmfalse \Value}{\VFalse}$ \quad and \quad $V = \tmfalse$}
 Similar to the case where $V = \tmtrue$.
+\end{subcase}
+\end{case}
+
+\begin{case}{$\D = \icnc{\above{\D_1}{M_1 \hastype \Bool}}{\above{\D_2}{M_2 \hastype T}}{\above{\D_3}{M_3 \hastype T}}{\tmif{M_1}{M_2}{M_3} \hastype T}{\TIf}$}
+$M_1 \Halts$, i.e. $\exists V.$ s.t. $\V' :: V \Value$ ~~and~~ $\S' :: M_1 \MSteps V$ \hfill by I.H. $\D_1$ \\[1em]
+%
+\fbox{To Prove: ~~~$M\Halts$, i.e. $\exists W.$ s.t. $W \Value$ ~~and~~ $\S :: (\tmif{M_1}{M_2}{M_3}) \MSteps W$} \\[1em]
+%
+\begin{subcase}{$\V' = \ianc{}{\tmtrue \Value}{\VTrue}$ \quad and \quad $V = \tmtrue$}
+$\proofderiv{\S_0}{\tmif{M_1}{M_2}{M_3} \MSteps \tmif{\tmtrue}{M_2}{M_3}}$ \hfill by lemma mstep-if \\
+$\proofderiv{\S_1}{\tmif{\tmtrue}{M_2}{M_3} \MSteps M_2}$ \hfill by $\MStep$ using $\EIfTrue$ \\
+$\proofderiv{\S_2}{\tmif{M_1}{M_2}{M_3} \MSteps M_2}$ \hfill by $\MTr$ using $\S_0$ and $\S_1$ \\
+$M_2 \Halts$, i.e. $\exists V_2.$ s.t. $\V_2 :: V_2 \Value$ ~~and~~ $\S_3 :: M_2 \MSteps V_2$ \hfill by I.H. $\D_2$ 
+$\proofderiv{\S}{\tmif{M_1}{M_2}{M_3} \MSteps V_2}$ \hfill by $\MTr$ using $\S_2$ and $\S_3$ \\
+$\exists W.$ s.t. $W \Value$ ~~and~~ $\proofderiv{\S}{\tmif{M_1}{M_2}{M_3} \MSteps W}$ \hfill by choosing $W = V_2$ \\
+$\tmif{M_1}{M_2}{M_3} \Halts$ \hfill by definition of ${\!}\Halts$
+\end{subcase}\\[1em]
+%
+\begin{subcase}{$\V' = \ianc{}{\tmfalse \Value}{\VFalse}$ \quad and \quad $V = \tmfalse$}
+Similar to the case where $V = \tmtrue$.
+\end{subcase}\\[1em]
+%
+\begin{subcase}{$\V' = \ianc{}{\tmzero \Value}{\VZero}$ \quad and \quad $V = \tmzero$}
+$\proofderiv{\S'}{M_1 \MSteps \tmzero}$ \hfill restating assumption $\S'$ \\
+$\proofderiv{\F}{\tmzero : \Bool}$ \hfill by type preservation for multi-step relations using $\D_1$ \\
+$~~~ \bot$
+\end{subcase}\\[1em]
+%
+\begin{subcase}{$\V' = \ianc{\above{\W}{V'\Value}}{(\tmsucc V') \Value}{\VSucc}$ \quad and \quad $V = \tmsucc V'$}
+Similar to the case were $V = \tmzero$.
 \end{subcase}
 \end{case}
 
@@ -1015,25 +1045,27 @@ fn d => ? ;
 Again we encode the case analysis in the proof as a case analysis in the program
 splitting on the assumption \lstinline!d!. We show below the cases we discussed
 in detail above, however the full proof is implemented in the file
-\lstinline!evaluation.bel!.
+\lstinline!termination.bel!.
 
 For the case where we have \lstinline!d: [|- hastype z nat]! by
 \lstinline![|- t_zero]!, we return \lstinline![|- result ms_ref (v_zero)]! that
-stands for a proof \lstinline![|- halts z]!. For the case where we have
-\lstinline!d: [|-hastype (pred N) nat]! by \lstinline![|- t_pred D]! and
+stands for a proof \lstinline![|- halts z]!.
+
+For the case where we have
+\lstinline!d: [|- hastype (pred N) nat]! by \lstinline![|- t_pred D]! and
 \lstinline!D! stands for a sub-derivation \lstinline![|- hastype N nat]!: by the
 induction hypothesis on \lstinline!D! (i.e. modelled via the recursive call), we
 obtain a proof of \lstinline![|- halts N]!.  By inversion, we know that this
 proof has the shape \lstinline![|- result MS W]! where \lstinline!MS!
-stands for \lstinline![|- multistep N R]! and \lstinline!W!
+stands for \lstinline![|- multi_step N R]! and \lstinline!W!
 stands for a proof \lstinline![|- value R]!. We now case-analyze
 \mbox{\lstinline![|- value R]!}.
 
 If \lstinline!R=z! and we have a derivation
-\lstinline![|- v_zero]!, we call our lemma \lstinline!mstep_pred! with
+\lstinline![|- v_z]!, we call our lemma \lstinline!mstep_pred! with
 \lstinline!MS! to obtain a derivation \lstinline!MS'! for
 \lstinline![|- multi_step (pred N) (pred z)]!. What remains is to build a proof
-for \lstinline![|- halts (pred N)]!. First, we build a proof \lstinline![|- v_zero]!
+for \lstinline![|- halts (pred N)]!. First, we build a proof \lstinline![|- v_z]!
 that \lstinline![|- value z]!. Second, we build a proof for
 \lstinline![|- multi_step (pred N) z]! using transitivity together with
 \lstinline!MS'! and the derivation \lstinline![|- ms_step e_pred_zero]! for
@@ -1050,12 +1082,43 @@ for \lstinline![|- halts (pred N)]! using transitivity together with
 %\mbox{\lstinline![|-multi_step (pred N) W]!}.
 
 If \lstinline!R=true! or \lstinline!R=false! then we know by the type
-preservation lemma for multi-step relations implemented by the
+preservation lemma for the multi-step relation implemented by the
 function \lstinline!multi_tps! that we cannot take a step.
 
-\todo{Need to move the comment about giving a type annotation to a pattern (pg. 43)
-	here, because it's necessary for this proof and never explained anywhere. -ah}
+Finally we consider the case where we have
+\lstinline!d: [|- hastype (if_then_else M M1 M2) T]! by
+\lstinline![|- t_if_then_else D D1 D2]!, where
+\lstinline!D! stands for a sub-derivation \lstinline![|- hastype M bool]!,
+\lstinline!D1! stands for a sub-derivation \lstinline![|- hastype M1 T]!, and
+\lstinline!D2! stands for a sub-derivation \lstinline![|- hastype M2 T]!. By the
+induction hypothesis on \lstinline!D!, we obtain a proof for \lstinline![|- halts M]!
+which has the shape \lstinline![|- result MS W]! where \lstinline!MS! stands for
+\lstinline![|- multistep M R]! and \lstinline!W! stands for \lstinline![|- value R]!.
+We proceed by case analysis on \lstinline![|- value R]!.
 
+If \lstinline!R=true! and we have a derivation \lstinline![|- v_true]!, we call
+our multi-step lemma \lstinline!mstep_if_then_else! with \lstinline!MS!, \lstinline!M1!, and
+\lstinline!M2! to obtain a derivation \lstinline!MS0! that stands for
+\lstinline![|- multi_step (if_then_else M M1 M2) (if_then_else true M1 M2)]!. By a recursive
+call on \lstinline!D1!, we obtain a proof of \lstinline![|- halts M1]! that has the shape
+\lstinline![|- result MS1 W']!, where \lstinline!MS1! stands for
+\lstinline![|- multi_step M1 R']! and \lstinline!W'! stands for \lstinline![|- value R']!.
+We build a proof for \lstinline![|- multi_step (if_then_else M M1 M2) R']! using
+transitivity (along with \lstinline![|- ms_step e_if_true]!)
+and combine that with \lstinline!W'! to build our proof of
+\lstinline![|- halts (if_then_else M M1 M2)]!.
+
+The case where \lstinline!R=false! proceeds similarly.
+
+If \lstinline!R=z! or \lstinline!R=succ W!, then by the type preservation
+lemma for the multi-step relation (\lstinline!multi_tps!) we cannot take a step
+and so this case is impossible.
+
+\todo{The cases for t_if_then_else are more complicated than I'd like them to be
+	because the multi-step derivations like (ms_tr MS0 (ms_step e_if_true)) can't
+	be factored out (presumably because M1 and M2 aren't specified in e_if_true)
+	so everything needs to be done at once in the last line.
+	It would be nice to make this simpler for the reader. -ah}
 
 \begin{lstlisting}
 rec terminate : [|-hastype M T] -> [ |-halts M] =
@@ -1063,11 +1126,22 @@ rec terminate : [|-hastype M T] -> [ |-halts M] =
 fn d => case d of
 | [|- t_true]  => ?
 | [|- t_false] => ?
-| [|- t_if_then_else D D1 D2] => ?
+| [|- t_if_then_else D D1 D2] : [|- hastype (if_then_else M M1 M2) T] =>
+  (case terminate [|- D] of
+  | [|- result MS v_true] =>
+    let [|- MS0] = mstep_if_then_else [|- MS] [|- M1] [|- M2] in
+    let [|- result MS1 W'] = terminate [|- D1] in
+      [|- result (ms_tr (ms_tr MS0 (ms_step e_if_true)) MS1) W']
+  | [|- result MS v_false] =>
+    let [|- MS0] = mstep_if_then_else [|- MS] [|- M1] [|- M2] in
+    let [|- result MS1 W'] = terminate [|- D2] in
+      [|- result (ms_tr (ms_tr MS0 (ms_step e_if_false)) MS1) W']
+  | [|- result MS v_z] => impossible multi_tps [|- D] [|- MS]
+  | [|- result MS (v_succ V)] => impossible multi_tps [|- D] [|- MS] )
 | [|- t_zero]   => [|- result ms_ref v_z]
 | [|- t_succ D] => ?
 | [|- t_pred D] => (case terminate [|- D] of
-   | [|- result MS (v_z)] =>
+   | [|- result MS v_z] =>
      let [|- MS'] = mstep_pred [|- MS] in
        [|- result (ms_tr MS' (ms_step e_pred_zero)) v_z]
    | [|- result MS (v_succ V)] =>
@@ -1078,6 +1152,28 @@ fn d => case d of
  )
 | [|- t_iszero D] => ?
 ;
+\end{lstlisting}
+
+There is one very interesting aspect that arises in the
+translation of the on-paper proof into the program. Revisit the line
+
+\begin{center}
+	\lstinline!| [|- t_if_then_else D D1 D2] : [|- hastype (if_then_else M M1 M2) T] =>!
+\end{center}
+
+We give a type annotation to the pattern. This is not necessary for
+type reconstruction, but rather we want to be able to name the terms
+\lstinline!M1! and \lstinline!M2! as we must pass them explicitly
+when we use the lemma \lstinline!mstep_if_then_else!. Type annotations
+can also be used in let-expressions and alternatively, we could have
+written the following:
+
+\begin{lstlisting}
+| [|- t_if_then_else D D1 D2] : [|- hastype (if_then_else M M1 M2) T] =>
+  let d : [|- hastype (if_then_else M M1 M2) T] = d in
+  (case terminate [|- D] of
+   . . .
+  )
 \end{lstlisting}
 
 % \chapter{Exercise 3.5.17}
@@ -1288,31 +1384,6 @@ rec bstep_to_mstep : [|- bigstep M V] -> [|- multi_step M V] =
     let [|- S1'] = mstep_if_then_else [|- S1] [|- M2] [|- M3] in
     [|- ms_tr (ms_tr S1' (ms_step e_if_true)) S2]
   \end{lstlisting}
-
-There is however one very interesting aspect that arises in the
-translation of the on-paper proof into the program. Revisit the line
-
-\begin{center}
-\lstinline!| [|- b_if_true  B1 B2] : [|- bigstep (if_then_else _ M2 M3) _] =>!
-\end{center}
-
-We give a type annotation to the pattern. This is not necessary for
-type reconstruction, but rather we want to be able to name the term
-\lstinline!M2! and \lstinline!M3! as we want to and must pass them explicitly
-when we use the lemma \lstinline!mstep_if_then_else!. Type annotations
-can also be used in let-expressions and alternatively, we could have
-written the following:
-\todo{To be checked in Beluga}
-
-\begin{lstlisting}
- | [|- b_if_true  B1 B2] =>
-    let [|- B1] : [|- bigstep M2 V] = [|- B1] in
-    let [|- B]  : [|- bigstep (if_then_else _ M2 M3) _]  = b in
-    let [|- S1] = bstep_to_mstep [|- B1] in
-    let [|- S2] = bstep_to_mstep [|- B2] in
-    let [|- S1'] = mstep_if_then_else [|- S1] [|- M2] [|- M3] in
-    [|- ms_tr (ms_tr S1' (ms_step e_if_true)) S2]
-\end{lstlisting}
 
 
 
