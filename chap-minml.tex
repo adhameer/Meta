@@ -1048,7 +1048,7 @@ in detail above, however the full proof is implemented in the file
 \lstinline!termination.bel!.
 
 For the case where we have \lstinline!d: [|- hastype z nat]! by
-\lstinline![|- t_zero]!, we return \lstinline![|- result ms_ref (v_zero)]! that
+\lstinline![|- t_zero]!, we return \lstinline![|- result ms_ref (v_z)]! that
 stands for a proof \lstinline![|- halts z]!.
 
 For the case where we have
@@ -1269,6 +1269,11 @@ rec bstep_value : [|- bigstep M V] -> [|- value V] =
 ;
 \end{lstlisting}
 
+(Note that in the totality declaration for \lstinline!bstep_value!, we
+use underscores instead of naming the variables that the function
+is not recursively defined on. We will continue to do this in the
+future.)
+
 Second, we  prove that evaluation yields a unique value. Note that
 this is {\bf not} equivalent to saying that only the \BValue rule can
 apply. For example there are two different ways of proving that
@@ -1298,16 +1303,16 @@ evaluate to themselves.
 
 \begin{lstlisting}
 rec bstep_value_stagnate : [|- bigstep V1 V2] -> [|- value V1] -> [|- equal V1 V2] =
-/ total e (bstep_unique_stagnate _ _ _ e) /
+/ total e (bstep_value_stagnate _ _ _ e) /
   fn b => fn e => case e of
-  | [|- v_zero]    => let [|- b_value _] = b in [|- ref]
+  | [|- v_z]       => let [|- b_value _] = b in [|- ref]
   | [|- v_true]    => let [|- b_value _] = b in [|- ref]
   | [|- v_false]   => let [|- b_value _] = b in [|- ref]
   | [|- v_succ E'] =>
     (case b of
      | [|- b_value _] => [|- ref]
      | [|- b_succ B'] =>
-       let [|- ref] = bstep_unique_stagnate [|- B'] [|- E'] in [|- ref]
+       let [|- ref] = bstep_value_stagnate [|- B'] [|- E'] in [|- ref]
     )
 ;
 \end{lstlisting}
@@ -1325,7 +1330,7 @@ property for free.
 This part of the proof follows exactly the one described in \cite{TAPL}. In the
 proof, we rely on the Multi Step Lemmas (Lemma~\ref{lem:multi-step}) which we
 proved in the last section. These lemmas justify bigger steps when evaluating a
-term with the small-steps semantics which will be useful when we translate a
+term with the small-step semantics, which will be useful when we translate a
 sequence of steps to a derivation tree in our big-step semantics. Let us now
 write the actual proof:
 
@@ -1335,7 +1340,8 @@ write the actual proof:
 \end{proposition}
 
 \begin{proof}
-  By induction on the proof $\proofderiv{\mathcal{B}}{M \BSteps V}$:
+  By induction on the proof $\proofderiv{\mathcal{B}}{M \BSteps V}$.
+  We show a few representative cases.
 
 \begin{case}{$\B = \ianc{V \Value}{V \BSteps V}{\BValue}$}
 $V \MSteps V$ \hfill by reflexivity of $\MSteps$, i.e. $\MRef$
@@ -1343,7 +1349,7 @@ $V \MSteps V$ \hfill by reflexivity of $\MSteps$, i.e. $\MRef$
 
 \begin{case}{$\B = \ianc{\above{\B'}{M \BSteps \tmzero}}{\tmpred M
   \BSteps \tmzero}{\BPredZero}$}
-$M \MSteps \tmzero$ \hfill by i.h. on $\B'$\\
+$M \MSteps \tmzero$ \hfill by I.H. on $\B'$\\
 $\tmpred M \MSteps \tmpred z$ \hfill by lemma~\ref{lem:multi-step}\\
 $\tmpred \tmzero \Steps \tmzero$ \hfill by $\EPredZero$\\
 $\tmpred \tmzero \MSteps \tmzero$ \hfill by $\MStep$\\
@@ -1351,13 +1357,14 @@ $\tmpred M \MSteps \tmzero$ \hfill by $\MTr$
 \end{case}
 
 \begin{case}{$\B = \inferaa{\BIfTrue}{\tmif{M_1}{M_2}{M_3} \BSteps V}{\above{\B_1}{M_1 \BSteps \tmtrue}}{\above{\B_2}{M_2 \BSteps V}}$}
-$M_1 \MSteps \tmtrue$ \hfill by i.h. using $\B_1$ \\
-$M_2 \MSteps V$ \hfill by i.h. using $\B_2$ \\
+$M_1 \MSteps \tmtrue$ \hfill by I.H. using $\B_1$ \\
+$M_2 \MSteps V$ \hfill by I.H. using $\B_2$ \\
 $\tmif{M_1}{M_2}{M_3} \MSteps \tmif{\tmtrue}{M_2}{M_3}$ \hfill by lemma~\ref{lem:multi-step}\\
 $\tmif{\tmtrue}{M_2}{M_3} \Steps M_2$ \hfill by $\EIfTrue$ \\
 $\tmif{\tmtrue}{M_2}{M_3} \MSteps M_2$ \hfill by $\MStep$ \\
 $\tmif{M_1}{M_2}{M_3} \MSteps V$ \hfill by $\MTr$
 \end{case}
+
 \end{proof}
 
 
@@ -1370,19 +1377,25 @@ program.
 rec bstep_to_mstep : [|- bigstep M V] -> [|- multi_step M V] =
 / total b (bstep_to_mstep _ _ b) /
   fn b => case b of
-
   | [|- b_value _] => [|- ms_ref]
+  | [|- b_succ  B] => ?
 
   | [|- b_pred_zero B] =>
     let [|- S] = bstep_to_mstep [|- B] in
     let [|- S'] = mstep_pred [|- S] in
-    [|- ms_tr S' (ms_step e_pred_zero)]
+      [|- ms_tr S' (ms_step e_pred_zero)]
+  | [|- b_pred_succ B] => ?
+
+  | [|- b_iszero_zero B] => ?
+  | [|- b_iszero_succ B] => ?
 
   | [|- b_if_true  B1 B2] : [|- bigstep (if_then_else _ M2 M3) _] =>
     let [|- S1] = bstep_to_mstep [|- B1] in
     let [|- S2] = bstep_to_mstep [|- B2] in
     let [|- S1'] = mstep_if_then_else [|- S1] [|- M2] [|- M3] in
-    [|- ms_tr (ms_tr S1' (ms_step e_if_true)) S2]
+      [|- ms_tr (ms_tr S1' (ms_step e_if_true)) S2]
+  | [|- b_if_false B1 B2] => ?
+;
   \end{lstlisting}
 
 
@@ -1393,8 +1406,8 @@ This direction is not as immediate as the first one. This comes essentially from
 the fact that the big-step semantics relates a term and a value, while the
 small step semantics relates two terms. In this proof, we
 exploit the fact that eventually we also reach a value using the
-small-step semantics and moreover that in both, the small step and big
-step semantics, values evaluates to itself.
+small step semantics and moreover that in both the small step (with multi-step)
+and big step semantics, values evaluate to themselves.
 
 % This is the reason why we will need to say that $V$ is a value (we didn't need
 % it in the Part~1), and this is the reason why we will have to use lemmas that
@@ -1418,7 +1431,7 @@ The proof of this lemma is the hardest part. Indeed, once we have this lemma, we
 have to iterate over the $\Steps$ to get the same property for $\MSteps$:
 
 \begin{lemma}\label{lem:mstep-bstep-to-bstep}
-  If $M \MSteps N \BSteps V$ then $M \Downarrow V$.
+  If $M \MSteps N$ and $N \BSteps V$ then $M \Downarrow V$.
 \end{lemma}
 
 This lemma is translated into \beluga directly as
@@ -1442,97 +1455,108 @@ Or in \beluga:
 \begin{lstlisting}
 rec mstep_to_bstep : [|- multi_step M V] -> [|- value V] -> [|- bigstep M V] =
 / total s (mstep_to_bstep _ _ s _) /
-  fn s => fn v => ? ;
+  fn s => fn v => ?;
 \end{lstlisting}
 
 
-Let us now return to the proof of Lemma \ref{lem:step-bstep-to-bstep}:
+Let us now return to the proof of Lemma \ref{lem:step-bstep-to-bstep}.
 
 \begin{proof}[Proof of lemma~\ref{lem:step-bstep-to-bstep}]
 
-By induction on the proof $\proofderiv{\mathcal{S}}{M \Steps N}$.
+By induction on the proof $\proofderiv{\mathcal{S}}{M \Steps N}$. We show a few representative cases.
 
 \begin{case}{$\S = \ianc{}{\tmif{\tmtrue}{M_2}{M_3} \Steps  M_2}{\EIfTrue}$}
+$\tmtrue \BSteps \tmtrue$ \hfill by $\VTrue$ and $\BValue$\\
 $M_2 \BSteps V$ \hfill by assumption \\
-$\tmtrue \BSteps \tmtrue$ \hfill by $\BValue$\\
-
-    \[ \inferaa{\BIfTrue}{\tmif{\tmtrue}{M_2}{M_3} \BSteps V}{\infera{\BValue}{\tmtrue \BSteps \tmtrue}{\infera{\VTrue}{\tmtrue \Value}{}}}{M_2 \BSteps V} \]
+$\tmif{\tmtrue}{M_2}{M_3} \BSteps V$ \hfill by $\BIfTrue$
 \end{case}
 
-\begin{case}{$\S = \infera{\EPredSucc}{\tmpred \tmsucc V \Steps V}{V \Value}$}
+\begin{case}{$\S = \infera{\EPredSucc}{\tmpred (\tmsucc V) \Steps V}{V \Value}$}
 $V \BSteps V'$ \hfill by assumption \\
 $V = V'$ \hfill by Lemma \ref{lem:bstep-values-stagnate} \\
-
-    \[ \infera{\BPredSucc}{\tmpred (\tmsucc V) \BSteps V}{\infera{\BValue}{\tmsucc V \BSteps \tmsucc V}{\infera{\VSucc}{\tmsucc V \Value}{V \Value}}} \]
+$(\tmsucc V) \Value$ \hfill by $\VSucc$ \\
+$\tmsucc V \BSteps \tmsucc V$ \hfill by $\BValue$ \\
+$\tmpred (\tmsucc V) \BSteps V$ \hfill by $\BPredSucc$
 \end{case}
 
-\begin{case}{$\S = \infera{\EIf}{\tmif{M_1}{M_2}{M_3} \Steps \tmif{M_1'}{M_2}{M_3}}{M_1 \Steps M_1'}$}
-    Let's notice that after such a step, there can be three big-step rules:
-    \begin{itemize}
-      \item A \BValue rule, but this is not possible since a $\tmif{M_1'}{M_2}{M_3}$ cannot be a
-        value.
-      \item A \BIfTrue rule. In that case, we have a proof for
-        $M_1' \BSteps \tmtrue$ and an other one for $M_2 \BSteps V$. We can then
-        apply our induction hypothesis on $M_1 \Steps M_1' \BSteps \tmtrue$,
-        obtain a proof for $M_1 \BSteps \tmtrue$ and conclude:
-        \[ \inferaa{\BIfTrue}{\tmif{M_1}{M_2}{M_3} \BSteps V}{M_1 \BSteps \tmtrue}{M_2 \BSteps V} \]
-      \item A \BIfFalse rule, which is exactly the same thing.
-    \end{itemize}
+\begin{case}{$\S = \infera{\EIf}{\tmif{M_1}{M_2}{M_3} \Steps \tmif{M_1'}{M_2}{M_3}}{\above{\S'}{M_1 \Steps M_1'}}$}
+We case-analyze $\proofderiv{\mathcal{B}}{\tmif{M_1'}{M_2}{M_3} \BSteps V}$. \\[1em]
+%
+\begin{subcase}{$\mathcal{B} = \ianc{V \Value}{V \BSteps V}{\BValue}$ ~~and~~ $V = \tmif{M_1'}{M_2}{M_3}$}
+Impossible, since $\tmif{M_1'}{M_2}{M_3}$ cannot be a value.
+\end{subcase} \\[1em]
+%
+\begin{subcase}{$\mathcal{B} = \ibnc{\above{\mathcal{B}_1}{M_1' \BSteps \tmtrue}}{\above{\mathcal{B}_2}{M_2 \BSteps V}}{\tmif{M_1'}{M_2}{M_3} \BSteps V}{\BIfTrue}$}
+$\proofderiv{\S'}{M_1 \Steps M_1'}$ \hfill restating assumption $\S'$ \\
+$M_1 \BSteps \tmtrue$ \hfill by I.H. on $\S'$ and $\mathcal{B}_1$ \\
+$\tmif{M_1}{M_2}{M_3} \BSteps V$ \hfill by $\mathcal{B}_2$ and $\BIfTrue$
+\end{subcase} \\[1em]
+%
+\begin{subcase}{$\mathcal{B} = \ibnc{\above{\mathcal{B}_1}{M_1' \BSteps \tmfalse}}{\above{\mathcal{B}_2}{M_3 \BSteps V}}{\tmif{M_1'}{M_2}{M_3} \BSteps V}{\BIfFalse}$}
+Similar to the case using $\BIfTrue$.
+\end{subcase}
 \end{case}
 
-\begin{case}{$\S = \infera{\ESucc}{\tmsucc M \Steps \tmsucc N}{M \Steps N}$}
-    Once again, after this step, we can have two different big-step rules:
-    \begin{itemize}
-    \item A \BValue rule. Which means that $\tmsucc N$ is a value, which means
-      that $N$ is a value. We can then use the induction hypothesis on
-      $M \Steps N \BSteps N$ and get a proof of $M \BSteps N$. And then
-      conclude:
-      \[ \infera{\BSucc}{\tmsucc M \BSteps \tmsucc N}{M \BSteps N} \]
-    \item A \BSucc rule. Which means we have something like that:
-      \[ \infera{\ESucc and \BSucc}{\tmsucc M \Steps \tmsucc N \BSteps \tmsucc V'}{M \Steps N \BSteps V'} \]
-      We apply the induction hypothesis, obtain a proof of $M \BSteps V'$ and we
-      can conclude:
-      \[ \infera{\BSucc}{\tmsucc M \BSteps \tmsucc V'}{M \BSteps V'} \]
-    \end{itemize}
+\begin{case}{$\S = \infera{\ESucc}{\tmsucc M \Steps \tmsucc N}{\above{\S'}{M \Steps N}}$}
+We case-analyze $\proofderiv{\mathcal{B}}{\tmsucc N \BSteps V}$. \\[1em]
+%
+\begin{subcase}{$\mathcal{B} = \ianc{V \Value}{V \BSteps V}{\BValue}$ ~~and~~ $V = \tmsucc N$}
+$\proofderiv{\S'}{M \Steps N}$ \hfill restating assumption $\S'$ \\
+$N \Value$ \hfill by inversion on $\VSucc$ \\
+$\proofderiv{\mathcal{B}'}{N \BSteps N}$ \hfill by $\BValue$ \\
+$M \BSteps N$ \hfill by I.H. on $\S'$ and $\mathcal{B}'$ \\
+$\tmsucc M \BSteps \tmsucc N$ \hfill by $\BSucc$
+\end{subcase} \\[1em]
+%
+\begin{subcase}{$\mathcal{B} = \ianc{\above{\mathcal{B}'}{N \BSteps V'}}{\tmsucc N \BSteps \tmsucc V'}{\BSucc}$ ~~and~~ $V = \tmsucc V'$}
+$\proofderiv{\S'}{M \Steps N}$ \hfill restating assumption $\S'$ \\
+$M \BSteps V'$ \hfill by I.H. on $\S'$ and $\mathcal{B}'$ \\
+$\tmsucc M \BSteps \tmsucc V'$ \hfill by $\BSucc$
+\end{subcase}
 \end{case}
+
 \end{proof}
 
-  \begin{lstlisting}
+\begin{lstlisting}
 rec step_bstep_to_bstep : [|- step M N] -> [|- bigstep N V] -> [|- bigstep M V] =
 / total s (step_bstep_to_bstep _ _ _ s _) /
   fn s => fn b =>
   let [|- B] = b in
   case s of
+  | [|- e_if_true]  => [|- b_if_true (b_value v_true) B]
+  | [|- e_if_false] => ?
 
-  | [|- e_if_true] =>
-    [|- b_if_true (b_value v_true) B]
-
+  | [|- e_pred_zero]   => ?
   | [|- e_pred_succ E] =>
-    let [|- ref] = bstep_values_stagnate [|- B] [|- E] in
-    [|- b_pred_succ (b_value (v_succ E))]
+    let [|- ref] = bstep_value_stagnate [|- B] [|- E] in
+      [|- b_pred_succ (b_value (v_succ E))]
+
+  | [|- e_iszero_zero]   => ?
+  | [|- e_iszero_succ V] => ?
 
   | [|- e_if_then_else S] =>
     (case [|- B] of
      | [|- b_value E] => impossible [|- E]
      | [|- b_if_true  B1' B2'] =>
        let [|- B1] = step_bstep_to_bstep [|- S] [|- B1'] in
-       [|- b_if_true  B1 B2']
+         [|- b_if_true  B1 B2']
      | [|- b_if_false B1' B3'] =>
        let [|- B1] = step_bstep_to_bstep [|- S] [|- B1'] in
-       [|- b_if_false B1 B3']
-    )
+         [|- b_if_false B1 B3'] )
 
-  | [|- e_succ S] =>
+  | [|- e_succ S]   =>
     (case [|- B] of
      | [|- b_value E] =>
        let [|- v_succ E'] = [|- E] in
        let [|- B'] = step_bstep_to_bstep [|- S] [|- b_value E'] in
-       [|- b_succ B']
-     | [|- b_succ B] =>
+         [|- b_succ B']
+     | [|- b_succ B]  =>
        let [|- B'] = step_bstep_to_bstep [|- S] [|- B] in
-       [|- b_succ B']
-    )
-  \end{lstlisting}
+         [|- b_succ B'] )
+  | [|- e_pred S]   => ?
+  | [|- e_iszero S] => ?
+;
+\end{lstlisting}
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "book"
