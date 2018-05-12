@@ -306,19 +306,19 @@ our definition.
 
 \begin{lstlisting}
 LF hastype : term -> tp -> type =
-| t_true         : hastype true bool
-| t_false        : hastype false bool
-| t_zero         : hastype z nat
+| t_true   : hastype true bool
+| t_false  : hastype false bool
+| t_zero   : hastype z nat
 
-| t_if_then_else : hastype M1 bool -> hastype M2 T -> hastype M3 T
-                   -> hastype (if_then_else M1 M2 M3) T
+| t_if     : hastype M1 bool -> hastype M2 T -> hastype M3 T
+             -> hastype (if_then_else M1 M2 M3) T
 
-| t_succ         : hastype M nat
-                   -> hastype (succ M) nat
-| t_pred         : hastype M nat
-                   -> hastype (pred M) nat
-| t_iszero       : hastype M nat
-                   -> hastype (iszero M) bool
+| t_succ   : hastype M nat
+             -> hastype (succ M) nat
+| t_pred   : hastype M nat
+             -> hastype (pred M) nat
+| t_iszero : hastype M nat
+             -> hastype (iszero M) bool
 ;
 \end{lstlisting}
 
@@ -578,13 +578,13 @@ rec tps: [|- hastype M T] -> [|- step M N] -> [|- hastype N T] =
 / total s (tps m t n d s) /
 fn d => fn s => case s of
 | [|- e_if_true] =>
-  let [|- t_if_then_else D D1 D2] = d in [|-D1]
+  let [|- t_if D D1 D2] = d in [|-D1]
 | [|- e_if_false] =>
-  let [|- t_if_then_else D D1 D2] = d in [|-D2]
+  let [|- t_if D D1 D2] = d in [|-D2]
 | [|- e_if_then_else S] =>
-  let [|-t_if_then_else D D1 D2] = d in
+  let [|- t_if D D1 D2] = d in
   let [|-D'] = tps [|-D] [|-S] in
-  [|- t_if_then_else D' D1 D2]
+  [|- t_if D' D1 D2]
 | [|- e_pred_zero] =>
   let [|-t_pred _ ] = d in  [|-t_zero]
 | [|- e_pred_succ _ ] =>
@@ -1087,7 +1087,7 @@ function \lstinline!multi_tps! that we cannot take a step.
 
 Finally we consider the case where we have
 \lstinline!d: [|- hastype (if_then_else M M1 M2) T]! by
-\lstinline![|- t_if_then_else D D1 D2]!, where
+\lstinline![|- t_if D D1 D2]!, where
 \lstinline!D! stands for a sub-derivation \lstinline![|- hastype M bool]!,
 \lstinline!D1! stands for a sub-derivation \lstinline![|- hastype M1 T]!, and
 \lstinline!D2! stands for a sub-derivation \lstinline![|- hastype M2 T]!. By the
@@ -1114,7 +1114,7 @@ If \lstinline!R=z! or \lstinline!R=succ W!, then by the type preservation
 lemma for the multi-step relation (\lstinline!multi_tps!) we cannot take a step
 and so this case is impossible.
 
-\todo{The cases for t_if_then_else are more complicated than I'd like them to be
+\todo{The cases for t_if are more complicated than I'd like them to be
 	because the multi-step derivations like (ms_tr MS0 (ms_step e_if_true)) can't
 	be factored out (presumably because M1 and M2 aren't specified in e_if_true)
 	so everything needs to be done at once in the last line.
@@ -1126,7 +1126,7 @@ rec terminate : [|-hastype M T] -> [ |-halts M] =
 fn d => case d of
 | [|- t_true]  => ?
 | [|- t_false] => ?
-| [|- t_if_then_else D D1 D2] : [|- hastype (if_then_else M M1 M2) T] =>
+| [|- t_if D D1 D2] : [|- hastype (if_then_else M M1 M2) T] =>
   (case terminate [|- D] of
   | [|- result MS v_true] =>
     let [|- MS0] = mstep_if_then_else [|- MS] [|- M1] [|- M2] in
@@ -1158,7 +1158,7 @@ There is one very interesting aspect that arises in the
 translation of the on-paper proof into the program. Revisit the line
 
 \begin{center}
-	\lstinline!| [|- t_if_then_else D D1 D2] : [|- hastype (if_then_else M M1 M2) T] =>!
+	\lstinline!| [|- t_if D D1 D2] : [|- hastype (if_then_else M M1 M2) T] =>!
 \end{center}
 
 We give a type annotation to the pattern. This is not necessary for
@@ -1169,7 +1169,7 @@ can also be used in let-expressions and alternatively, we could have
 written the following:
 
 \begin{lstlisting}
-| [|- t_if_then_else D D1 D2] : [|- hastype (if_then_else M M1 M2) T] =>
+| [|- t_if D D1 D2] : [|- hastype (if_then_else M M1 M2) T] =>
   let d : [|- hastype (if_then_else M M1 M2) T] = d in
   (case terminate [|- D] of
    . . .
